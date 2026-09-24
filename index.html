@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RS485 客户接入指南：五线连接、按钮启停、采样数据解析与电压换算。">
+  <meta name="color-scheme" content="light">
+  <title>RS485 外部通信指南</title>
+  <style>
+    :root{--navy:#142d48;--ink:#21364a;--muted:#66778a;--blue:#2264be;--teal:#17847e;--line:#dfe6ee;--soft:#f3f6fa;--paper:#fff}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#edf1f6;color:var(--ink);font:15px/1.65 "Microsoft YaHei","PingFang SC",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    button{font:inherit;cursor:pointer}button:focus-visible,summary:focus-visible{outline:3px solid #8db4ed;outline-offset:4px}button:disabled{cursor:default}
+    .document{max-width:1100px;margin:36px auto;background:var(--paper);box-shadow:0 12px 50px #17304b0b;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:23px 44px;border-bottom:1px solid var(--line)}
+    .identity{display:flex;align-items:center;gap:12px}.mark{display:flex;align-items:center;gap:4px;width:32px;height:32px}.mark i{display:block;width:7px;background:var(--navy);border-radius:2px}.mark i:nth-child(1){height:17px}.mark i:nth-child(2){height:28px}.mark i:nth-child(3){height:22px;background:var(--teal)}
+    .eyebrow{font-size:10px;letter-spacing:1.8px;color:var(--muted);font-weight:600}.identity strong{display:block;font-size:13px;letter-spacing:1px}
+    .actions{display:flex;align-items:center;gap:17px}.version{font-size:11px;color:var(--muted);letter-spacing:1px}.print-button{padding:7px 13px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:12px}.print-button:hover{background:var(--soft)}
+    .hero{position:relative;background:var(--navy);color:white;padding:42px 44px 30px;overflow:hidden}.hero:after{content:"";position:absolute;right:-40px;top:-75px;width:340px;height:340px;border:1px solid #ffffff12;border-radius:50%;box-shadow:0 0 0 52px #ffffff04,0 0 0 104px #ffffff03;pointer-events:none}
+    .hero .eyebrow{color:#9fc8e3;font-size:11px;letter-spacing:2px}.hero h1{font-size:36px;line-height:1.3;letter-spacing:1px;margin:12px 0 10px;font-weight:650}.hero p{color:#c1d1e0;margin:0;font-size:14px}.hero>*{position:relative;z-index:1}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);margin-top:30px;padding-top:22px;border-top:1px solid #ffffff24;gap:24px}.metric{display:flex;align-items:baseline;gap:12px}.metric strong{font-size:24px;line-height:1.2;letter-spacing:.3px;font-weight:550}.metric span{color:#b7cada;font-size:12px}.metric small{font-size:12px;font-weight:400;margin-left:4px;color:#d4e0ea}
+    main{padding:8px 44px 28px}section{padding:27px 0;border-bottom:1px solid var(--line)}section:last-child{border-bottom:0;padding-bottom:12px}
+    .section-heading{display:flex;align-items:center;gap:12px;margin-bottom:17px}.number{font:600 12px/29px system-ui,sans-serif;text-align:center;min-width:29px;height:29px;border-radius:7px;background:#eaf1fa;color:var(--blue)}h2{font-size:19px;margin:0;font-weight:650;letter-spacing:.2px}.section-heading .small-note{margin-left:auto;color:var(--muted);font-size:12px}
+    .wiring{border:1px solid var(--line);border-radius:10px;background:#fafcfe;overflow:hidden;margin-bottom:14px}.diagram-scroll{overflow-x:auto}.wiring svg{display:block;width:100%;height:auto;min-width:630px}.diagram-note{padding:9px 16px;border-top:1px solid #e7ecf2;font-size:11px;color:var(--muted);background:#f6f9fc}
+    table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}th{background:var(--soft);font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.4px}th,td{padding:10px 14px;border-bottom:1px solid #e7ecf2}tr:last-child td{border-bottom:0}td:first-child{font-weight:600;white-space:nowrap}.table-wrap{border:1px solid var(--line);border-radius:8px;overflow:hidden}.wire-key{display:inline-block;width:6px;height:6px;margin-right:9px;border-radius:50%;vertical-align:middle;background:var(--blue)}.wire-key.ground{background:#8393a3}.wire-key.a{background:var(--teal)}.wire-key.b{background:#b68642}
+    .notice{margin-top:13px;padding:12px 16px;background:#f0f5fb;border-left:3px solid var(--blue);border-radius:0 6px 6px 0;font-size:12px;color:#425d78}.notice strong{color:var(--navy)}
+    .operation{display:grid;grid-template-columns:1.17fr 1fr;gap:22px}.settings{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#f7f9fc;border:1px solid var(--line);border-radius:9px;overflow:hidden}.setting{padding:13px 17px}.setting:nth-child(-n+2){border-bottom:1px solid var(--line)}.setting:nth-child(odd){border-right:1px solid var(--line)}.setting span{display:block;color:var(--muted);font-size:11px;margin-bottom:3px}.setting strong{font-size:14px;font-weight:600}.steps{margin:0;padding-left:21px;font-size:13px}.steps li{padding:4px 0 5px 4px}.steps li::marker{color:var(--blue);font-weight:600}.subtle{color:var(--muted);font-size:12px;margin:12px 0 0}
+    .frame-layout{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}.frame-list{border:1px solid var(--line);border-radius:9px;overflow:hidden}.frame-row{display:flex;gap:15px;align-items:center;padding:11px 16px;font-size:12px}.frame-row+.frame-row{border-top:1px solid var(--line)}.byte-tag{font:600 13px/1.4 Consolas,"Courier New",monospace;color:var(--blue);flex:0 0 23px}.frame-row code{font-size:12px;color:#344f67;overflow-wrap:anywhere}.example{background:#f0f6f6;border:1px solid #dce9e8;border-radius:9px;padding:14px 18px}.example-label{color:#497770;font-size:11px;font-weight:600}.hex-row{display:flex;gap:10px;margin:12px 0 8px}.hex{background:#fff;border:1px solid #d5e3e1;border-radius:6px;padding:7px 11px;font:600 21px/1.1 Consolas,monospace;color:#235a56}.example p{font-size:12px;margin:0;color:#466760}.formula{padding:12px 15px;margin:13px 0;background:var(--soft);border-radius:7px;font-size:12px;overflow-wrap:anywhere}.formula span{display:block;font-size:10px;color:var(--muted);margin-bottom:3px}.formula code{color:#254b70;font-size:12px}
+    .crc{margin:14px 0 0;font-size:12px;color:#52667a;line-height:1.9}.crc strong{color:var(--ink)}.rule-list{margin:12px 0 0;padding-left:18px;font-size:12px;color:#52667a}.rule-list li{padding:2px 0 2px 3px}.rule-list strong{color:var(--ink)}code{font-family:Consolas,"Courier New",monospace}
+    details{border:1px solid var(--line);border-radius:8px;margin-top:18px;overflow:hidden}summary{padding:12px 16px;font-size:12px;font-weight:600;cursor:pointer;background:#f8fafc;user-select:none}summary::marker{color:var(--blue)}.code-tools{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 16px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}.copy-button{font-size:11px;border:1px solid #ccdae8;color:#345978;background:#fff;border-radius:5px;padding:4px 10px;white-space:nowrap}pre{background:#172b40;color:#d4e3ef;margin:0;padding:20px;overflow-x:auto;font:12px/1.65 Consolas,"Courier New",monospace;tab-size:4}pre code{font:inherit}
+    #voltage{break-inside:avoid}
+    footer{border-top:1px solid var(--line);padding:17px 44px;display:flex;justify-content:space-between;gap:18px;font-size:10px;color:#778699;background:#fafbfd;letter-spacing:.3px}
+    @media(max-width:760px){body{background:#fff}.document{margin:0;border:0;border-radius:0;box-shadow:none}.topbar{padding:18px 22px}.hero{padding:30px 22px 25px}.hero h1{font-size:30px}.hero p{font-size:12px}.metrics{gap:14px;margin-top:23px;padding-top:20px}.metric{display:block}.metric strong{display:block;font-size:22px}.metric span{font-size:10px}.metric small{font-size:10px}.hero:after{right:-175px;top:-130px}main{padding:6px 22px 20px}section{padding:23px 0}.section-heading{gap:10px}.section-heading .small-note{font-size:10px}h2{font-size:17px}.operation,.frame-layout{grid-template-columns:1fr;gap:15px}th,td{padding:9px 10px;font-size:11px}.wire-key{margin-right:6px}.frame-row{padding:11px 13px}.frame-row code{font-size:11px}.formula code{font-size:11px}.example{padding:13px 16px}.hex-row{margin-top:9px}.steps{font-size:12px}.version{display:none}footer{padding:16px 22px;font-size:9px}.print-button{font-size:11px}.eyebrow{font-size:9px}.diagram-note{font-size:10px}}
+    @media print{@page{size:A4;margin:12mm}body{background:#fff;font-size:10pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}.document{max-width:none;margin:0;border:0;border-radius:0;box-shadow:none}.topbar{padding:0 0 13px}.actions{display:none}.hero{padding:24px 25px 19px;border-radius:8px}.hero h1{font-size:27px}.hero p{font-size:12px}.metrics{margin-top:20px;padding-top:15px}.metric strong{font-size:21px}.metric span{font-size:10px}main{padding:0}section{padding:19px 0}.section-heading{margin-bottom:11px}h2{font-size:16px}.wiring svg{min-width:0}.diagram-scroll{overflow:visible}.wiring,.table-wrap,.operation,.frame-layout,.formula,.notice{break-inside:avoid}th,td{padding:7px 10px;font-size:10px}.frame-row{padding:9px 12px}.frame-row code{font-size:10px}.diagram-note,.notice,.subtle,.crc,.rule-list{font-size:10px}.operation{gap:16px}.steps{font-size:11px}.setting{padding:9px 13px}.setting strong{font-size:12px}.setting span{font-size:10px}#operation{break-before:page}.copy-button,.code-tools{display:none}details:not([open]){display:none}details{break-inside:auto}pre{font-size:9px;white-space:pre-wrap;overflow-wrap:anywhere}footer{padding:12px 0 0;background:#fff;font-size:9px}}
+  </style>
+</head>
+<body>
+  <article class="document">
+    <header class="topbar">
+      <div class="identity"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><div><div class="eyebrow">CUSTOMER INTERFACE</div><strong>客户接入指南</strong></div></div>
+      <div class="actions"><span class="version">V1.0</span><button class="print-button" type="button" id="print">打印 / 保存 PDF</button></div>
+    </header>
+    <div class="hero">
+      <div class="eyebrow">CONNECTION &amp; COMMUNICATION</div>
+      <h1>RS485 外部通信指南</h1>
+      <p>五线连接，按钮启停，直接接收二进制采样数据。</p>
+      <div class="metrics"><div class="metric"><strong>05<small>条</small></strong><span>外部连接线</span></div><div class="metric"><strong>115200</strong><span>固定波特率</span></div><div class="metric"><strong>3<small>字节</small></strong><span>每个采样值</span></div></div>
+    </div>
+    <main>
+      <section id="wiring">
+        <div class="section-heading"><span class="number">01</span><h2>五线接线</h2><span class="small-note">按线缆标识连接</span></div>
+        <div class="wiring">
+          <div class="diagram-scroll">
+            <svg viewBox="0 0 1000 315" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="wire-title wire-desc">
+              <title id="wire-title">五线连接示意图</title><desc id="wire-desc">设备按钮控制线和控制地接无源常开按钮；485 A、485 B 和485地分别接客户控制器的对应差分端子和通信参考地。</desc>
+              <g font-family="Microsoft YaHei,PingFang SC,sans-serif">
+                <text x="34" y="34" fill="#60768b" font-size="12" font-weight="600">设备侧 · 外部线缆</text><text x="708" y="34" fill="#60768b" font-size="12" font-weight="600">客户侧 · 按钮与控制器</text>
+                <rect x="25" y="49" width="218" height="244" rx="10" fill="#fff" stroke="#dce5ee"/>
+                <rect x="697" y="49" width="278" height="106" rx="10" fill="#f0f5fb" stroke="#dce5ee"/><rect x="697" y="169" width="278" height="124" rx="10" fill="#fff" stroke="#dce5ee"/>
+                <g fill="#243e56" font-size="13" font-weight="500"><text x="44" y="82">按钮控制线</text><text x="44" y="130">地（控制地）</text><text x="44" y="198">485 A</text><text x="44" y="238">485 B</text><text x="44" y="278">485 地</text></g>
+                <g fill="none" stroke-width="2.2"><path d="M243 78 H848" stroke="#2264be"/><path d="M243 126 H848" stroke="#8393a3"/><path d="M243 194 H719" stroke="#17847e"/><path d="M243 234 H719" stroke="#b68642"/><path d="M243 274 H719" stroke="#8393a3"/><path d="M848 78 L873 115" stroke="#2264be"/></g>
+                <g fill="#fff" stroke-width="2"><circle cx="243" cy="78" r="3.5" stroke="#2264be"/><circle cx="243" cy="126" r="3.5" stroke="#8393a3"/><circle cx="848" cy="78" r="4" stroke="#2264be"/><circle cx="848" cy="126" r="4" stroke="#8393a3"/><circle cx="243" cy="194" r="3.5" stroke="#17847e"/><circle cx="243" cy="234" r="3.5" stroke="#b68642"/><circle cx="243" cy="274" r="3.5" stroke="#8393a3"/><circle cx="719" cy="194" r="3.5" stroke="#17847e"/><circle cx="719" cy="234" r="3.5" stroke="#b68642"/><circle cx="719" cy="274" r="3.5" stroke="#8393a3"/></g>
+                <text x="471" y="67" fill="#7890a6" font-size="10" text-anchor="middle">按钮控制回路</text><text x="888" y="97" fill="#355b7d" font-size="11">常开按钮</text><text x="888" y="115" fill="#668099" font-size="10">无源触点</text>
+                <g fill="#35516c" font-size="12"><text x="738" y="198">控制器 · RS485 A</text><text x="738" y="238">控制器 · RS485 B</text><text x="738" y="278">控制器 · 通信参考地</text></g>
+              </g>
+            </svg>
+          </div>
+          <div class="diagram-note">图示颜色仅用于区分信号，不代表线束颜色。A/B 请按双方端子的极性定义核对。</div>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th scope="col">线缆名称</th><th scope="col">客户侧连接</th><th scope="col">用途</th></tr></thead><tbody>
+          <tr><td><span class="wire-key"></span>按钮控制线</td><td>常开按钮的一端</td><td>与控制地闭合时触发启停</td></tr>
+          <tr><td><span class="wire-key ground"></span>地（控制地）</td><td>常开按钮的另一端</td><td>按钮回路的参考地</td></tr>
+          <tr><td><span class="wire-key a"></span>485 A</td><td>控制器 RS485 对应差分端子</td><td>差分通信线 A</td></tr>
+          <tr><td><span class="wire-key b"></span>485 B</td><td>控制器 RS485 对应差分端子</td><td>差分通信线 B</td></tr>
+          <tr><td><span class="wire-key ground"></span>485 地</td><td>控制器 RS485 通信参考地</td><td>通信参考连接</td></tr>
+        </tbody></table></div>
+        <div class="notice"><strong>按钮接法：</strong>使用无源常开、按后可松开的按钮。按下将控制线接至控制地，松开断开；请勿向按钮控制线施加外部电压。</div>
+      </section>
+      <section id="operation">
+        <div class="section-heading"><span class="number">02</span><h2>设置与启停</h2><span class="small-note">正常采集无需串口指令</span></div>
+        <div class="operation">
+          <div class="settings"><div class="setting"><span>波特率</span><strong>115200 bit/s</strong></div><div class="setting"><span>串口格式</span><strong>8 数据位 · 无校验 · 1 停止位</strong></div><div class="setting"><span>硬件流控</span><strong>无</strong></div><div class="setting"><span>数据方式</span><strong>二进制 · 连续主动输出</strong></div></div>
+          <ol class="steps"><li>完成五线连接，设置串口为 <strong>115200 / 8N1</strong>。</li><li>待机时短按一次按钮，启动采集；采集中短按一次，停止采集。</li><li>每次操作后松开按钮，等待状态变化，再进行下一次操作。</li></ol>
+        </div>
+        <p class="subtle">长按只触发一次；上电时若已按住，须先松开。停止采集后无采样数据输出；仅凭“无数据”不能区分待机与连接异常。</p>
+      </section>
+      <section id="data">
+        <div class="section-heading"><span class="number">03</span><h2>数据帧与接收规则</h2><span class="small-note">16 位原码 · CRC5 校验</span></div>
+        <div class="frame-layout"><div class="frame-list">
+          <div class="frame-row"><span class="byte-tag">B0</span><code>0x80 | (ADC &amp; 0x7F)</code></div>
+          <div class="frame-row"><span class="byte-tag">B1</span><code>(ADC &gt;&gt; 7) &amp; 0x7F</code></div>
+          <div class="frame-row"><span class="byte-tag">B2</span><code>(CRC5(ADC) &lt;&lt; 2) | ((ADC &gt;&gt; 14) &amp; 0x03)</code></div>
+        </div><div class="example"><div class="example-label">示例 · 按此顺序接收</div><div class="hex-row"><span class="hex">E0</span><span class="hex">0B</span><span class="hex">5E</span></div><p>ADC = <code>0x85E0</code>　CRC5 = <code>0x17</code></p></div></div>
+        <div class="formula"><span>ADC 重建公式</span><code>ADC = (B0 &amp; 0x7F) | ((B1 &amp; 0x7F) &lt;&lt; 7) | ((B2 &amp; 0x03) &lt;&lt; 14)</code></div>
+        <p class="subtle">ADC 为 16 位无符号原码。每帧按 B0 → B1 → B2 发送，不附加逗号、换行或文本帧头。不能将 B0/B1 直接转换为小端 uint16；UART 字节内仍为硬件 LSB-first。</p>
+        <p class="crc"><strong>CRC5 约定：</strong>宽度 5，多项式 <code>x⁵+x²+1</code>（<code>0x05</code>），初值 <code>0x1F</code>，输入/输出不反射，最终异或 <code>0x00</code>，不额外补零。仅对 ADC 原码计算：先低字节、再高字节，每字节按 bit7 → bit0 处理。不含帧标记位，亦非 CRC-5/USB。</p>
+        <ol class="rule-list">
+          <li>任何时候收到 <strong>bit7 = 1</strong> 的字节，都将其作为新 B0，并丢弃未完成的旧帧。</li>
+          <li>未收到 B0 时忽略 bit7 = 0 的字节；收到 B0 后，依次接收两个 bit7 = 0 的字节。</li>
+          <li>收齐 3 字节后重建 ADC。仅当计算的 CRC5 等于 <code>(B2 &gt;&gt; 2) &amp; 0x1F</code> 时更新数值，随后等待下一 B0。</li>
+          <li>解析状态须跨读取保留。串口错误、Break、溢出或重开时清空状态；溢出时同时丢弃完整性不确定的缓冲数据。</li>
+        </ol>
+        <p class="subtle">本数据流只提供 ADC 原码。帧中不含序号，无法据此识别整帧丢失或重复；CRC5 也不能检出所有多位错误。</p>
+        <details id="reference"><summary>开发参考：CRC5 与逐字节解析（C）</summary><div class="code-tools"><span>每收到一个字节调用一次；串口异常时调用 rx_reset。</span><button type="button" class="copy-button" id="copy">复制代码</button></div><pre><code id="reference-code">#include &lt;stdint.h&gt;
+#include &lt;stdbool.h&gt;
+
+typedef struct {
+    uint8_t b0, b1, step;
+} rx_state;
+
+static uint8_t crc5_adc(uint16_t adc)
+{
+    uint8_t crc = 0x1F;
+    for (unsigned n = 0; n &lt; 2; ++n) {
+        uint8_t value = (uint8_t)(adc &gt;&gt; (n * 8));
+        for (int bit = 7; bit &gt;= 0; --bit) {
+            uint8_t feedback = ((crc &gt;&gt; 4) ^ (value &gt;&gt; bit)) &amp; 1;
+            crc = (uint8_t)((crc &lt;&lt; 1) &amp; 0x1F);
+            if (feedback) crc ^= 0x05;
+        }
+    }
+    return crc;
+}
+
+static void rx_reset(rx_state *s)
+{
+    s-&gt;step = 0;
+}
+
+/* Keep s across reads. Only true means a new, CRC-valid ADC value. */
+static bool rx_byte(rx_state *s, uint8_t byte, uint16_t *adc)
+{
+    if (byte &amp; 0x80) {
+        s-&gt;b0 = byte;
+        s-&gt;step = 1;
+    } else if (s-&gt;step == 1) {
+        s-&gt;b1 = byte;
+        s-&gt;step = 2;
+    } else if (s-&gt;step == 2) {
+        uint16_t value = (uint16_t)((s-&gt;b0 &amp; 0x7F) |
+                         ((uint16_t)s-&gt;b1 &lt;&lt; 7) |
+                         ((uint16_t)(byte &amp; 0x03) &lt;&lt; 14));
+        rx_reset(s);
+        if (crc5_adc(value) == ((byte &gt;&gt; 2) &amp; 0x1F)) {
+            *adc = value;
+            return true;
+        }
+    }
+    return false;
+}
+
+/* Initialize once: rx_state state = {0};
+   Feed every received byte to rx_byte(&amp;state, byte, &amp;adc).
+   Reset after serial errors; discard uncertain data after overflow. */</code></pre></details>
+      </section>
+      <section id="voltage">
+        <div class="section-heading"><span class="number">04</span><h2>数字量转模拟量</h2><span class="small-note">电压换算 · ±2.56 V</span></div>
+        <p class="subtle">先按上一节重建 ADC，并通过 CRC 校验，再将 0～65535 的无符号原码换算为电压值，单位为 V。</p>
+        <div class="formula"><span>换算公式 · 对应 ±2.56 V 量程</span><code>V = ADC × 5.12 / 65536 − 2.56</code></div>
+        <div class="table-wrap"><table id="voltage-table"><thead><tr><th scope="col">ADC 原码</th><th scope="col">十进制值</th><th scope="col">换算电压（V）</th></tr></thead><tbody>
+          <tr><td><code>0x0000</code></td><td>0</td><td>−2.56</td></tr>
+          <tr><td><code>0x8000</code></td><td>32768</td><td>0</td></tr>
+          <tr><td><code>0x85E0</code></td><td>34272</td><td>+0.1175</td></tr>
+          <tr><td><code>0xFFFF</code></td><td>65535</td><td>+2.559921875</td></tr>
+        </tbody></table></div>
+        <p class="subtle">每增加 1 码，对应 78.125 μV；最大码比 +2.56 V 低 1 码。示例数据 <code>E0 0B 5E</code> 对应 <strong>+0.1175 V（117.5 mV）</strong>。</p>
+        <div class="formula"><span>C 换算示例 · 使用浮点运算，adc 为已校验的 uint16_t 原码</span><code>double voltage_v = (double)adc * 5.12 / 65536.0 - 2.56;</code></div>
+      </section>
+    </main>
+    <footer><span>RS485 外部通信指南 · V1.0</span><span>接线与正常采集数据接口</span></footer>
+  </article>
+  <script>
+    document.getElementById('print').addEventListener('click', () => window.print());
+    document.getElementById('copy').addEventListener('click', async function () {
+      const text = document.getElementById('reference-code').textContent;
+      let copied = false;
+      try { await navigator.clipboard.writeText(text); copied = true; }
+      catch (_) {
+        const field = document.createElement('textarea');
+        field.value = text; field.style.position = 'fixed'; field.style.opacity = '0';
+        document.body.appendChild(field); field.focus(); field.select();
+        try { copied = document.execCommand('copy'); } catch (_) {}
+        field.remove();
+      }
+      this.textContent = copied ? '已复制' : '请手动选择代码复制';
+      setTimeout(() => { this.textContent = '复制代码'; }, 2200);
+    });
+  </script>
+</body>
+</html>
